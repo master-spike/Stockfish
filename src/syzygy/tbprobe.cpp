@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include <atomic>
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <cstdlib>
@@ -127,9 +128,14 @@ T number(void* addr) {
         std::memcpy(&v, addr, sizeof(T));
     else
         v = *((T*) addr);
-
+#ifdef __cpp_lib_endian
+    if constexpr ((std::endian::little == std::endian::native) != LE)
+#else
     if (LE != IsLittleEndian)
+#endif
+    {
         swap_endian(v);
+    }
     return v;
 }
 

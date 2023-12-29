@@ -22,6 +22,7 @@
 #define NNUE_COMMON_H_INCLUDED
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <cstring>
@@ -92,10 +93,14 @@ template<typename IntType>
 inline IntType read_little_endian(std::istream& stream) {
     IntType result;
 
+#ifdef __cpp_lib_endian
+    if constexpr (std::endian::little == std::endian::native)
+#else
     if (IsLittleEndian)
-        stream.read(reinterpret_cast<char*>(&result), sizeof(IntType));
-    else
+#endif
     {
+        stream.read(reinterpret_cast<char*>(&result), sizeof(IntType));
+    } else {
         std::uint8_t                  u[sizeof(IntType)];
         std::make_unsigned_t<IntType> v = 0;
 
@@ -117,10 +122,14 @@ inline IntType read_little_endian(std::istream& stream) {
 template<typename IntType>
 inline void write_little_endian(std::ostream& stream, IntType value) {
 
+#ifdef __cpp_lib_endian
+    if constexpr (std::endian::little == std::endian::native)
+#else
     if (IsLittleEndian)
-        stream.write(reinterpret_cast<const char*>(&value), sizeof(IntType));
-    else
+#endif
     {
+        stream.write(reinterpret_cast<const char*>(&value), sizeof(IntType));
+    } else {
         std::uint8_t                  u[sizeof(IntType)];
         std::make_unsigned_t<IntType> v = value;
 
@@ -145,11 +154,18 @@ inline void write_little_endian(std::ostream& stream, IntType value) {
 // This reads N integers from stream s and put them in array out.
 template<typename IntType>
 inline void read_little_endian(std::istream& stream, IntType* out, std::size_t count) {
+
+#ifdef __cpp_lib_endian
+    if constexpr (std::endian::little == std::endian::native)
+#else
     if (IsLittleEndian)
+#endif
+    {
         stream.read(reinterpret_cast<char*>(out), sizeof(IntType) * count);
-    else
+    } else {
         for (std::size_t i = 0; i < count; ++i)
             out[i] = read_little_endian<IntType>(stream);
+    }
 }
 
 
@@ -157,11 +173,18 @@ inline void read_little_endian(std::istream& stream, IntType* out, std::size_t c
 // This takes N integers from array values and writes them on stream s.
 template<typename IntType>
 inline void write_little_endian(std::ostream& stream, const IntType* values, std::size_t count) {
+
+#ifdef __cpp_lib_endian
+    if constexpr (std::endian::little == std::endian::native)
+#else
     if (IsLittleEndian)
+#endif
+    {
         stream.write(reinterpret_cast<const char*>(values), sizeof(IntType) * count);
-    else
+    } else {
         for (std::size_t i = 0; i < count; ++i)
             write_little_endian<IntType>(stream, values[i]);
+    }
 }
 
 
